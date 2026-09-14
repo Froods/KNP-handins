@@ -115,7 +115,8 @@ int main(int argc, char *argv[])
 		// snprintf indsætter tekst sikkert ind i TX buffer
 		snprintf((char*)bufferTx, sizeof(bufferTx), "Got message: %s",(char*)bufferRx);
 
-		// skriv indhold af TX buffer til til newsockfd, hvilket sender det til klienten
+		// skriv indhold af TX buffer til til newsockfd
+		// når der skrivrs til en socket, sørger dit OS for automatisk at sende det til klienten
 		n = write(newsockfd,bufferTx,strlen((char*)bufferTx));
 		// fang fejl
 		if (n < 0) error("ERROR writing to socket");
