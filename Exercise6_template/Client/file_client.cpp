@@ -27,16 +27,25 @@ void receiveFile(int serverSocket, const char* fileName, long fileSize)
 
 }
 
+void error(const char *msg)
+{
+    perror(msg);
+    exit(0);
+}
+
+
 int main(int argc, char *argv[])
 {
 	printf("Starting client...\n");
 
+
+	//Tjek at der er nok argumenter
 	if (argc < 3){
 	    error( "ERROR usage: ""hostname"",  ""filename""\n");
 	}
 
 
 
-
 	return 0;
 }
+
