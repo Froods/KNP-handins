@@ -28,8 +28,6 @@ void sendFile(int clientSocket, const char* fileName, long fileSize)
 {
 	printf("Sending: %s, size: %li\n", fileName, fileSize);
     
-	
-	
 }
 
 void error(const char* msg) {
@@ -91,6 +89,42 @@ int main(int argc, char *argv[])
 
 	// Sæt clilen til længde af cli_addr
 	clilen = sizeof(cli_addr);
+
+	// Serverens loop
+	for (;;)
+	{
+		printf("Accept...\n");
+		// accept() er en blokerende funktion, koden stopper her indtil en klient forsøger at forbinde
+		// når en klient forbinder, fyldes cli_addr med klientens ip og port
+		// accept() returnerer en ny socket file descriptor
+		// - som er dedikeret til samtalen mellem serveren og de nuværende klient
+		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+		// fang fejl
+		if (newsockfd < 0) error("ERROR on accept");
+		else printf("Accepted\n");
+
+		// Klargør RX buffer
+		bzero(bufferRx,sizeof(bufferRx));
+		// læs dataen sendt fra klienten og indsæt i bufferRx, n sættes til antal bytes læst
+		n = read(newsockfd,bufferRx,sizeof(bufferRx));
+		// fang fejl
+		if (n < 0) error("ERROR reading from socket");
+		// print inhold af RX buffer
+		printf("Message: %s\n",(char*)bufferRx);
+		
+		// snprintf indsætter tekst sikkert ind i TX buffer
+		snprintf((char*)bufferTx, sizeof(bufferTx), "Got message: %s",(char*)bufferRx);
+
+		// skriv indhold af TX buffer til til newsockfd, hvilket sender det til klienten
+		n = write(newsockfd,bufferTx,strlen((char*)bufferTx));
+		// fang fejl
+		if (n < 0) error("ERROR writing to socket");
+		
+		// Husk at lukke midlertidig socket
+		close(newsockfd);
+	}
+	// Husk at lukke socket
+	close(sockfd);
 
 
 	return 0; 
