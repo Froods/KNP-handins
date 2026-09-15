@@ -65,24 +65,19 @@ int main(int argc, char *argv[])
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 	    error("ERROR connecting");
 
-	printf("Please enter the message: ");
+	printf("Please enter the desired file to fetch: ");
 	fgets((char*)buffer,sizeof(buffer),stdin);
 	writeTextTCP(sockfd, (char*)buffer);  // socket write
 	
-    bzero(buffer,sizeof(buffer));
-	//n = read(sockfd,buffer,sizeof(buffer));  // socket read
-	n = recv(sockfd, buffer, sizeof(buffer), MSG_WAITALL);  // waits for full buffer or connection close
-	if (n < 0) 
-	    error("ERROR reading from socket");
-	
 	long fileSize = readFileSizeTCP(sockfd);
+
 	if (fileSize == 0) {
 		printf("Requested file is nonexistent.\n");
 		printf("Closing client...\n\n");
 		close(sockfd);
 		return 0;
 	} else {
-		printf("\nSize of file: %s bytes\n",(char*)buffer);
+		printf("\nSize of file: %ld bytes\n\n",fileSize);
 	}
 
     printf("Closing client...\n\n");
