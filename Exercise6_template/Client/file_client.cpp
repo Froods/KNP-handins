@@ -14,6 +14,7 @@ Extended to support file client!
 #include <netdb.h> 
 #include "iknlib.h"
 
+#define BUFSIZE 256
 
 /**
  * @brief Receives a file from a server socket
@@ -29,23 +30,54 @@ void receiveFile(int serverSocket, const char* fileName, long fileSize)
 
 void error(const char *msg)
 {
-    perror(msg);
-    exit(0);
+	perror(msg);
+	exit(1);
 }
-
 
 int main(int argc, char *argv[])
 {
 	printf("Starting client...\n");
 
+	int sockfd, portno, n;
+	struct sockaddr_in serv_addr;
+	struct hostent *server;
+	uint8_t buffer[BUFSIZE];
+    
+	if (argc < 3)
+	    error( "ERROR usage: ""hostname"",  ""port""");
 
-	//Tjek at der er nok argumenter
-	if (argc < 3){
-	    error( "ERROR usage: ""hostname"",  ""filename""\n");
-	}
+	portno = atoi(argv[2]);
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) 
+	    error("ERROR opening socket");
 
+	server = gethostbyname(argv[1]);
+	if (server == NULL) 
+	    error("ERROR no such host");
 
+	printf("Server at: %s, port: %s\n",argv[1], argv[2]);
 
+	printf("Connect...\n");
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	bcopy((char *)server->h_addr_list[0], (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+	serv_addr.sin_port = htons(portno);
+	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+	    error("ERROR connecting");
+
+	printf("Please enter the message: ");
+	fgets((char*)buffer,sizeof(buffer),stdin);
+	writeTextTCP(sockfd, (char*)buffer);  // socket write
+	
+    bzero(buffer,sizeof(buffer));
+	//n = read(sockfd,buffer,sizeof(buffer));  // socket read
+	n = recv(sockfd, buffer, sizeof(buffer), MSG_WAITALL);  // waits for full buffer or connection close
+	if (n < 0) 
+	    error("ERROR reading from socket");
+	printf("\n%s\n",(char*)buffer);
+
+    printf("Closing client...\n\n");
+	close(sockfd);
 	return 0;
 }
 
