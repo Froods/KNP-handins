@@ -74,7 +74,16 @@ int main(int argc, char *argv[])
 	n = recv(sockfd, buffer, sizeof(buffer), MSG_WAITALL);  // waits for full buffer or connection close
 	if (n < 0) 
 	    error("ERROR reading from socket");
-	printf("\n%s\n",(char*)buffer);
+	
+	long fileSize = readFileSizeTCP(sockfd);
+	if (fileSize == 0) {
+		printf("Requested file is nonexistent.\n");
+		printf("Closing client...\n\n");
+		close(sockfd);
+		return 0;
+	} else {
+		printf("\nSize of file: %s bytes\n",(char*)buffer);
+	}
 
     printf("Closing client...\n\n");
 	close(sockfd);

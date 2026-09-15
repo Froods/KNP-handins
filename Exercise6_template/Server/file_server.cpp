@@ -55,8 +55,6 @@ int main(int argc, char *argv[])
 	// serv_addr: struct til at holde servers adresse information
 	// cli_addr: struct til at holde klients adresse information
 	struct sockaddr_in serv_addr, cli_addr;
-	// n: brugt til at holde nummer af bytes læst/skrevet, bruges også til at tjekke fejl (n < 0)
-	int n;
 
 	// Hvis der ikke er tilstrækkelige argumenter, smid en fejl
 	if (argc < 2) {
@@ -106,6 +104,7 @@ int main(int argc, char *argv[])
 
 		// Klargør RX buffer
 		bzero(bufferRx,sizeof(bufferRx));
+
 		// læs dataen sendt fra klienten og indsæt i bufferRx
 		readTextTCP(newsockfd,(char*)bufferRx,sizeof(bufferRx));
 		// Fjern newline symbol hvis det eksisterer
@@ -120,7 +119,7 @@ int main(int argc, char *argv[])
 		if (fileSize == 0) {
 			printf("Requested file doesn't exist\n");
 			// snprintf indsætter tekst sikkert ind i TX buffer
-			snprintf((char*)bufferTx, sizeof(bufferTx), "Requested file doesn't exist.");
+			snprintf((char*)bufferTx, sizeof(bufferTx), "0");
 		} else {
 			printf("File was found - Size of file is %s bytes.\n", std::to_string(fileSize).c_str());
 			
@@ -130,14 +129,11 @@ int main(int argc, char *argv[])
 			strcpy(fileSizeArr, fileSizeStr.c_str());
 
 			// snprintf indsætter tekst sikkert ind i TX buffer
-			snprintf((char*)bufferTx, sizeof(bufferTx), "Size of requested file: %s",fileSizeArr);
+			snprintf((char*)bufferTx, sizeof(bufferTx), "%s",fileSizeArr);
 		}
 
 		// skriv indhold af TX buffer til til newsockfd
-		// når der skrivrs til en socket, sørger dit OS for automatisk at sende det til klienten
-		n = write(newsockfd,bufferTx,strlen((char*)bufferTx));
-		// fang fejl
-		if (n < 0) error("ERROR writing to socket");
+		writeTextTCP(newsockfd, (char*)bufferTx);
 		
 		// Husk at lukke midlertidig socket
 		close(newsockfd);
