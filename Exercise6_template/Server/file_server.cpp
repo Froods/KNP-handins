@@ -15,6 +15,7 @@ Extended to support file server!
 #include <netinet/in.h>
 #include "iknlib.h"
 #include <string>
+#include <fcntl.h>
 
 #define BUFSIZE_RX 200
 #define BUFSIZE_TX 256
@@ -28,7 +29,50 @@ Extended to support file server!
 void sendFile(int clientSocket, const char* fileName, long fileSize)
 {
 	printf("Sending: %s, size: %li\n", fileName, fileSize);
+
+	// Åbn fil
+	int fd = open(fileName, O_RDONLY)
+	if (fd < 0) error("failed to open file");
+
+	// Læs fra første byte i fil
+	off_t filePos = lseek(fd, count, SEEK_SET);
+	if (filePos < 0) {
+		close(fd);
+		error("lseek failed");
+	}
+
+	// Lav buffer og fyld med 0'er
+	int bufferSize = 1000;
+	uint8_t buffer[bufferSize];
+	memset(buffer, 0, sizeof(buffer));
+
+	// count holder styr på antallet af tegn der er læst
+	int count = 0;
+	// keepReading holder styr på om læsningen skal fortsætte
+	ssize_t keepReading = 1;
+
+	while (keepReading) {
+		// Læs chunk ind i buffer og beslut om der skal fortsættes med at læse
+		keepReading = read(fd, buffer, bufferSize)
+
+		// Send klient chunk
+		writeTextTCP(clientSocket, (char*)buffer);
+
+		// Count inkrementeres
+		count += bufferSize;
+		// Filepos indstilles til der hvor vi er nået til i filen
+		filePos = lseek(fd, count, SEEK_SET);
+			if (filePos < 0) {
+			close(fd);
+			error("lseek failed");
+		}
+
+		// Tøm buffer
+		memset(buffer, 0, sizeof(buffer));
+	}
     
+	// Husk at lukke fil igen
+	close(fd);
 }
 
 void error(const char* msg) {
