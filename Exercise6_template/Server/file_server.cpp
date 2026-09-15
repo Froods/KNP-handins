@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
 	// Hvis der ikke er tilstrækkelige argumenter, smid en fejl
 	if (argc < 2) {
-		error("ERROR USAGE: address, port");
+		error("ERROR USAGE: need to specify port");
 	}
 
 	// Lav kommunikations kanal og gem file descriptor til den i sockfd
@@ -105,10 +105,9 @@ int main(int argc, char *argv[])
 
 		// Klargør RX buffer
 		bzero(bufferRx,sizeof(bufferRx));
-		// læs dataen sendt fra klienten og indsæt i bufferRx, n sættes til antal bytes læst
-		n = read(newsockfd,bufferRx,sizeof(bufferRx));
-		// fang fejl
-		if (n < 0) error("ERROR reading from socket");
+		// læs dataen sendt fra klienten og indsæt i bufferRx
+		readTextTCP(newsockfd,(char*)bufferRx,sizeof(bufferRx));
+
 		// print inhold af RX buffer
 		printf("Message: %s\n",(char*)bufferRx);
 		
