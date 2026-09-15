@@ -31,15 +31,8 @@ void sendFile(int clientSocket, const char* fileName, long fileSize)
 	printf("Sending: %s, size: %li\n", fileName, fileSize);
 
 	// Åbn fil
-	int fd = open(fileName, O_RDONLY)
+	int fd = open(fileName, O_RDONLY);
 	if (fd < 0) error("failed to open file");
-
-	// Læs fra første byte i fil
-	off_t filePos = lseek(fd, count, SEEK_SET);
-	if (filePos < 0) {
-		close(fd);
-		error("lseek failed");
-	}
 
 	// Lav buffer og fyld med 0'er
 	int bufferSize = 1000;
@@ -47,28 +40,14 @@ void sendFile(int clientSocket, const char* fileName, long fileSize)
 	memset(buffer, 0, sizeof(buffer));
 
 	// count holder styr på antallet af tegn der er læst
-	int count = 0;
-	// keepReading holder styr på om læsningen skal fortsætte
-	ssize_t keepReading = 1;
+	int bytesRead = 0;
 
-	while (keepReading) {
-		// Læs chunk ind i buffer og beslut om der skal fortsættes med at læse
-		keepReading = read(fd, buffer, bufferSize)
-
-		// Send klient chunk
-		writeTextTCP(clientSocket, (char*)buffer);
-
-		// Count inkrementeres
-		count += bufferSize;
-		// Filepos indstilles til der hvor vi er nået til i filen
-		filePos = lseek(fd, count, SEEK_SET);
-			if (filePos < 0) {
-			close(fd);
-			error("lseek failed");
-		}
-
-		// Tøm buffer
-		memset(buffer, 0, sizeof(buffer));
+	while ((bytesRead = read(fd, buffer, bufferSize)) > 0) {
+		ssize_t bytesWritten = write(clientSocket, buffer, bytesRead);
+        if (bytesWritten < 0) {
+            perror("failed to write to socket");
+            break;
+        }
 	}
     
 	// Husk at lukke fil igen
