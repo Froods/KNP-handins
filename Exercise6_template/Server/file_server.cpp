@@ -14,6 +14,7 @@ Extended to support file server!
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "iknlib.h"
+#include <string>
 
 #define BUFSIZE_RX 200
 #define BUFSIZE_TX 256
@@ -107,12 +108,30 @@ int main(int argc, char *argv[])
 		bzero(bufferRx,sizeof(bufferRx));
 		// læs dataen sendt fra klienten og indsæt i bufferRx
 		readTextTCP(newsockfd,(char*)bufferRx,sizeof(bufferRx));
-
-		// print inhold af RX buffer
-		printf("Message: %s\n",(char*)bufferRx);
+		// Fjern newline symbol hvis det eksisterer
+		bufferRx[strcspn((char*)bufferRx, "\r\n")] = '\0';
 		
-		// snprintf indsætter tekst sikkert ind i TX buffer
-		snprintf((char*)bufferTx, sizeof(bufferTx), "Got message: %s",(char*)bufferRx);
+		// print inhold af RX buffer
+		printf("Client requesting file: %s\n",(char*)bufferRx);
+		
+		// Check if file exists and store size in fileSize
+		long fileSize = getFilesize((char*)bufferRx);
+
+		if (fileSize == 0) {
+			printf("Requested file doesn't exist\n");
+			// snprintf indsætter tekst sikkert ind i TX buffer
+			snprintf((char*)bufferTx, sizeof(bufferTx), "Requested file doesn't exist.");
+		} else {
+			printf("File was found - Size of file is %s bytes.\n", std::to_string(fileSize).c_str());
+			
+			// konverter filstørrelse til c-string
+			std::string fileSizeStr = std::to_string(fileSize);
+			char fileSizeArr[fileSizeStr.length() + 1];
+			strcpy(fileSizeArr, fileSizeStr.c_str());
+
+			// snprintf indsætter tekst sikkert ind i TX buffer
+			snprintf((char*)bufferTx, sizeof(bufferTx), "Size of requested file: %s",fileSizeArr);
+		}
 
 		// skriv indhold af TX buffer til til newsockfd
 		// når der skrivrs til en socket, sørger dit OS for automatisk at sende det til klienten
