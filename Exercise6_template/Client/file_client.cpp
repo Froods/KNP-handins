@@ -14,7 +14,7 @@ Extended to support file client!
 #include <netdb.h> 
 #include "iknlib.h"
 
-#define BUFSIZE 256
+#define BUFFSIZE 256
 
 /**
  * @brief Receives a file from a server socket
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
-	uint8_t buffer[BUFSIZE];
+	uint8_t buffer[BUFFSIZE];
     
 	if (argc < 3)
 	    error( "ERROR usage: ""hostname"",  ""port""");
