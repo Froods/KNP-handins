@@ -13,6 +13,7 @@ Extended to support file client!
 #include <sys/socket.h>
 #include <netdb.h> 
 #include "iknlib.h"
+#include <fcntl.h>
 
 #define BUFFSIZE 256
 
@@ -22,16 +23,43 @@ Extended to support file client!
  * @param fileName Name of file. Might include path on server!
  */
 
-void receiveFile(int serverSocket, const char* fileName, long fileSize)
-{
-	printf("Receiving: '%s', size: %li\n", fileName, fileSize);
-
-}
-
 void error(const char *msg)
 {
 	perror(msg);
 	exit(1);
+}
+
+void receiveFile(int serverSocket, const char* fileName, long fileSize)
+{
+	const char* localFileName = extractFileName(fileName);
+	printf("Receiving: '%s', size: %li\n", localFileName, fileSize);
+
+	// Åbn fil
+	// =O_TRUNC gør at filen tømmes hvis den allerede eksisterer
+	// 0666 giver alle tilladelse til at læse filen
+	int fd = open(localFileName, O_RDWR | O_CREAT | O_TRUNC, 0666);
+	if (fd < 0) error("open() failed");
+
+	// Lav buffer og fyld med 0'er
+	int bufferSize = 1000;
+	uint8_t buffer[bufferSize];
+	memset(buffer, 0, sizeof(buffer));
+
+	// bytesRead holder styr på antallet af tegn der er læst hver gang
+	int bytesRead = 0;
+	// totalBytesRead holder styr på det samlede antal af bytes der er læst
+	int totalBytesRead = 0;
+
+	while (totalBytesRead < fileSize) {
+		bytesRead = read(serverSocket, buffer, bufferSize);
+		printf("Fetched %i bytes\n", bytesRead);
+		totalBytesRead += bytesRead;
+		ssize_t bytesWritten = write(fd, buffer, bytesRead);
+        if (bytesWritten < 0) error("failed to write to socket");
+	}
+
+	close(fd);
+
 }
 
 int main(int argc, char *argv[])
@@ -67,6 +95,8 @@ int main(int argc, char *argv[])
 
 	printf("Please enter the desired file to fetch: ");
 	fgets((char*)buffer,sizeof(buffer),stdin);
+	char* fileName = (char*)buffer;
+	fileName[strcspn(fileName, "\r\n")] = '\0';
 	writeTextTCP(sockfd, (char*)buffer);  // socket write
 	
 	long fileSize = readFileSizeTCP(sockfd);
@@ -79,6 +109,8 @@ int main(int argc, char *argv[])
 	} else {
 		printf("\nSize of file: %ld bytes\n\n",fileSize);
 	}
+
+	receiveFile(sockfd, fileName, fileSize);
 
     printf("Closing client...\n\n");
 	close(sockfd);
