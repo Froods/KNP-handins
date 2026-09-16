@@ -52,8 +52,8 @@ void receiveFile(int serverSocket, const char* fileName, long fileSize)
 
 	while (totalBytesRead < fileSize) {
 		bytesRead = read(serverSocket, buffer, bufferSize);
-		printf("Fetched %i bytes\n", bytesRead);
 		totalBytesRead += bytesRead;
+		printf("Fetched %i/%li bytes\n", totalBytesRead, fileSize);
 		ssize_t bytesWritten = write(fd, buffer, bytesRead);
         if (bytesWritten < 0) error("failed to write to socket");
 	}
