@@ -47,11 +47,15 @@ void sendFile(int clientSocket, const char* fileName, long fileSize)
 
 	// bytesRead holder styr på antallet af tegn der er læst hver gang
 	int bytesRead = 0;
+	// bytesRead holder styr på total antal af bytes.
+	int totalBytes = 0;
 
 	// Læs imens der er mere af filen at læse
 	// Read holder selv styr på hvor langt den er nået i filen
 	while ((bytesRead = read(fd, buffer, bufferSize)) > 0) {
 		// Send chunk til klient
+		totalBytes += bytesRead;
+		printf("Sending %i/%li bytes to client\n", totalBytes, fileSize);
 		ssize_t bytesWritten = write(clientSocket, buffer, bytesRead);
         if (bytesWritten < 0) error("failed to write to socket");
 	}
@@ -90,7 +94,7 @@ int main(int argc, char *argv[])
 	// Fyld serv_addr med 0'er for at sikre der ikke er nogen garbage values
 	bzero((char *) &serv_addr, sizeof(serv_addr));
 	// Indstil port til brugers ønske
-	portno = 9005;
+	portno = 9000;
 	// Specificer at server adressen skal bruge IPv4
 	serv_addr.sin_family = AF_INET;
 	// Indstil server til at lytte på alle network interfaces (Wifi, ethernet, osv.)
