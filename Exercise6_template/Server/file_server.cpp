@@ -26,6 +26,12 @@ Extended to support file server!
  * @param fileName Name of file to be sent to client
  * @param fileSize Size of file
  */
+
+ void error(const char* msg) {
+	perror(msg);
+	exit(1);
+}
+
 void sendFile(int clientSocket, const char* fileName, long fileSize)
 {
 	printf("Sending: %s, size: %li\n", fileName, fileSize);
@@ -39,24 +45,19 @@ void sendFile(int clientSocket, const char* fileName, long fileSize)
 	uint8_t buffer[bufferSize];
 	memset(buffer, 0, sizeof(buffer));
 
-	// count holder styr på antallet af tegn der er læst
+	// bytesRead holder styr på antallet af tegn der er læst hver gang
 	int bytesRead = 0;
 
+	// Læs imens der er mere af filen at læse
+	// Read holder selv styr på hvor langt den er nået i filen
 	while ((bytesRead = read(fd, buffer, bufferSize)) > 0) {
+		// Send chunk til klient
 		ssize_t bytesWritten = write(clientSocket, buffer, bytesRead);
-        if (bytesWritten < 0) {
-            perror("failed to write to socket");
-            break;
-        }
+        if (bytesWritten < 0) error("failed to write to socket");
 	}
     
 	// Husk at lukke fil igen
 	close(fd);
-}
-
-void error(const char* msg) {
-	perror(msg);
-	exit(1);
 }
 
 int main(int argc, char *argv[])
@@ -157,6 +158,9 @@ int main(int argc, char *argv[])
 
 		// skriv indhold af TX buffer til til newsockfd
 		writeTextTCP(newsockfd, (char*)bufferTx);
+
+		// Send fil
+		if (fileSize != 0) sendFile(newsockfd, (char*)bufferRx, fileSize);
 		
 		// Husk at lukke midlertidig socket
 		close(newsockfd);
