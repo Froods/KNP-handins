@@ -80,11 +80,6 @@ int main(int argc, char *argv[])
 	// cli_addr: struct til at holde klients adresse information
 	struct sockaddr_in serv_addr, cli_addr;
 
-	// Hvis der ikke er tilstrækkelige argumenter, smid en fejl
-	if (argc < 2) {
-		error("ERROR USAGE: need to specify port");
-	}
-
 	// Lav kommunikations kanal og gem file descriptor til den i sockfd
 	sockfd = socket(AF_INET, SOCK_STREAM, 0); // AF_INET = IPv4, SOCK_STREAM = TCP (SOCK_DGRAM = UDP), 0 = default protocol (TCP for IPv4)
 	// Tjek om socket() fejlede
@@ -95,7 +90,7 @@ int main(int argc, char *argv[])
 	// Fyld serv_addr med 0'er for at sikre der ikke er nogen garbage values
 	bzero((char *) &serv_addr, sizeof(serv_addr));
 	// Indstil port til brugers ønske
-	portno = atoi(argv[1]);
+	portno = 9005;
 	// Specificer at server adressen skal bruge IPv4
 	serv_addr.sin_family = AF_INET;
 	// Indstil server til at lytte på alle network interfaces (Wifi, ethernet, osv.)
