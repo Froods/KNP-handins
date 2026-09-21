@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 		long fileSize = getFilesize((char*)bufferRx);
 
 		if (fileSize == 0) {
-			printf("Requested file doesn't exist\n");
+			printf("Requested file doesn't exist - size: 0 bytes\n");
 			// snprintf indsætter tekst sikkert ind i TX buffer
 			snprintf((char*)bufferTx, sizeof(bufferTx), "0");
 		} else {
