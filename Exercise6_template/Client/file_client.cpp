@@ -72,9 +72,9 @@ int main(int argc, char *argv[])
 	uint8_t buffer[BUFFSIZE];
     
 	if (argc < 3)
-	    error( "ERROR usage: ""hostname"",  ""port""");
+	    error( "ERROR usage: ""hostname"",  ""filename""");
 
-	portno = atoi(argv[2]);
+	portno = 9000;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) 
 	    error("ERROR opening socket");
@@ -93,11 +93,9 @@ int main(int argc, char *argv[])
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 	    error("ERROR connecting");
 
-	printf("Please enter the desired file to fetch: ");
-	fgets((char*)buffer,sizeof(buffer),stdin);
-	char* fileName = (char*)buffer;
+	char* fileName = argv[2];
 	fileName[strcspn(fileName, "\r\n")] = '\0';
-	writeTextTCP(sockfd, (char*)buffer);  // socket write
+	writeTextTCP(sockfd, fileName);  // socket write
 	
 	long fileSize = readFileSizeTCP(sockfd);
 
