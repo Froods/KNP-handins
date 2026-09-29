@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     '/Users/ottogerman/Documents/3-semester/KNP/KNP-handins/Exercise7/server/server_udp'
-relocations:     []
-...
